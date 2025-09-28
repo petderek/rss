@@ -4,13 +4,13 @@ import (
 	"encoding/xml"
 )
 
-type image struct {
+type Image struct {
 	Url   string `xml:"url"`
 	Link  string `xml:"link"`
 	Title string `xml:"title"`
 }
 
-type item struct {
+type Item struct {
 	Title       string `xml:"title"`
 	Description string `xml:"description"`
 	PublishDate string `xml:"pubDate"`
@@ -19,21 +19,21 @@ type item struct {
 	Guid        string `xml:"guid"`
 }
 
-type channel struct {
+type Channel struct {
 	Title       string `xml:"title"`
 	Description string `xml:"description"`
 	Link        string `xml:"link"`
-	Image       image  `xml:"image"`
-	Items       []item `xml:"item"`
+	Image       Image  `xml:"Image"`
+	Items       []Item `xml:"Item"`
 }
 
-type rss struct {
-	XMLName xml.Name `xml:"rss"`
-	Channel channel  `xml:"channel"`
+type Rss struct {
+	XMLName xml.Name `xml:"Rss"`
+	Channel Channel  `xml:"Channel"`
 }
 
-func parseXML(data []byte) (rss, error) {
-	v := rss{}
+func parseXML(data []byte) (Rss, error) {
+	v := Rss{}
 	err := xml.Unmarshal(data, &v)
 	return v, err
 }

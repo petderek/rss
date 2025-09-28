@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/petderek/rss"
@@ -13,16 +12,23 @@ import (
 )
 
 const (
-	HACK_URL  = "https://feeds.npr.org/1019/rss.xml"
-	HACK_NAME = "npr"
-	HACK_DIR  = "~/refuss"
+	HACK_URL   = "https://feeds.npr.org/1019/rss.xml"
+	HACK_NAME  = "npr"
+	HACK_DIR   = "~/refuss"
+	HACK_CACHE = "~/refuss-cache"
 )
 
-//go:embed hack.xml
-var HackContent []byte
-
 func main() {
-	rep, err := rss.ToInternal(HackContent)
+	cache := rss.NewCache(replaceHome(HACK_CACHE))
+	sub, err := cache.Get(HACK_NAME)
+	if err != nil {
+		log.Fatal(err)
+	}
+	data, err := sub.GetRssData()
+	if err != nil {
+		log.Fatal(err)
+	}
+	rep, err := rss.ToInternal(data)
 	if err != nil {
 		log.Fatal(err)
 	}

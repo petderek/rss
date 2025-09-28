@@ -2,8 +2,8 @@ package rss
 
 import "strings"
 
-// probably unnecesary - but it makes it easier for me to translate rss -> tree -> filesystem
-// i'll eventually just do rss->filesystem
+// probably unnecesary - but it makes it easier for me to translate Rss -> tree -> filesystem
+// i'll eventually just do Rss->filesystem
 type Node struct {
 	Name     string
 	Content  string
@@ -15,7 +15,7 @@ func (n *Node) add(child *Node) {
 	n.Children = append(n.Children, child)
 }
 
-func fromRss(r rss) *Node {
+func FromRss(r Rss) *Node {
 	root := &Node{
 		Dir: true,
 	}
