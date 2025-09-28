@@ -7,7 +7,7 @@ test:
 clean:
 	rm refuss
 
-refuss:
+refuss: *.go ./cmd/refuss/*
 	go build -o refuss ./cmd/refuss
 
 
