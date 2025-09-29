@@ -15,17 +15,17 @@ import (
 var (
 	configDir = flag.String("config", defaultConfig(), "directory with config files")
 	cacheDir  = flag.String("cache", defaultCacheDir(), "directory with cache files")
-	fuseDir   = flag.String("mount", "", "target to mount (required)")
+	mount     = flag.String("mount", "", "target to mount (required)")
 )
 
 func main() {
 	flag.Parse()
-	if fuseDir == nil || *fuseDir == "" {
+	if mount == nil || *mount == "" {
 		log.Println("-mount must be set")
 		os.Exit(1)
 	}
-	if !rss.Exists(*fuseDir) {
-		err := os.MkdirAll(*fuseDir, 0755)
+	if !rss.Exists(*mount) {
+		err := os.MkdirAll(*mount, 0755)
 		if err != nil {
 			log.Println("directory doesn't exist and can't be created: ", err)
 			os.Exit(1)
@@ -41,7 +41,7 @@ func main() {
 	raw := fs.NewNodeFS(&rss.FSRSS{
 		InternalRep: createRep(cfg),
 	}, opts)
-	server, err := fuse.NewServer(raw, *fuseDir, &opts.MountOptions)
+	server, err := fuse.NewServer(raw, *mount, &opts.MountOptions)
 	if err != nil {
 		log.Printf("Failed to create FUSE server: %v", err)
 		os.Exit(1)
