@@ -1,40 +1,40 @@
 package main
 
 import (
+	"flag"
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/petderek/rss"
 	"log"
 	"os"
 	"os/signal"
-	"strings"
+	"path/filepath"
 	"syscall"
 )
 
-const (
-	HACK_DIR    = "~/refuss"
-	HACK_CACHE  = "~/refuss-cache"
-	HACK_CONFIG = "~/refuss-config/subscriptions.cfg"
+var (
+	configDir = flag.String("config", defaultConfig(), "directory with config files")
+	cacheDir  = flag.String("cache", defaultCacheDir(), "directory with cache files")
+	fuseDir   = flag.String("mount", "", "target to mount")
 )
 
 func main() {
-	cfg, err := loadcfg(replaceHome(HACK_CONFIG))
+	flag.Parse()
+	if fuseDir == nil || *fuseDir == "" {
+		log.Println("-mount must be set")
+		os.Exit(1)
+	}
+	cfg, err := loadSubscriptions(*configDir)
 	if err != nil {
 		log.Printf("Failed to load config: %v", err)
 		os.Exit(1)
 	}
-	
-	rep, err := createRep(cfg)
-	if err != nil {
-		log.Printf("Failed to create representation: %v", err)
-		os.Exit(1)
-	}
-	
+
 	opts := &fs.Options{}
 	raw := fs.NewNodeFS(&rss.FSRSS{
-		InternalRep: rep,
+		InternalRep: createRep(cfg),
 	}, opts)
-	server, err := fuse.NewServer(raw, replaceHome(HACK_DIR), &opts.MountOptions)
+	server, err := fuse.NewServer(raw, *fuseDir, &opts.MountOptions)
 	if err != nil {
 		log.Printf("Failed to create FUSE server: %v", err)
 		os.Exit(1)
@@ -63,26 +63,17 @@ func handleSignals(server *fuse.Server) {
 	}
 }
 
-func replaceHome(path string) string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Printf("unable to get homedir: %v", err)
-		os.Exit(1)
-	}
-	return strings.Replace(path, "~", home, 1)
-}
-
-func loadcfg(path string) (rss.SubscriptionConfig, error) {
-	simple, err := rss.FromFile(path)
+func loadSubscriptions(path string) (rss.SubscriptionConfig, error) {
+	simple, err := rss.FromFile(filepath.Join(path, "subscriptions.cfg"))
 	if err != nil {
 		return nil, err
 	}
 	return rss.ToSubscription(simple), nil
 }
 
-func createRep(config rss.SubscriptionConfig) ([]*rss.Node, error) {
+func createRep(config rss.SubscriptionConfig) []*rss.Node {
 	rep := []*rss.Node{}
-	cache := rss.NewCache(replaceHome(HACK_CACHE))
+	cache := rss.NewCache(*cacheDir)
 	content := rss.Content{
 		config,
 		*cache,
@@ -91,15 +82,33 @@ func createRep(config rss.SubscriptionConfig) ([]*rss.Node, error) {
 		data, err := content.GetFeed(k)
 		if err != nil {
 			log.Printf("Failed to get feed for %s: %v", k, err)
+			// TODO failed status
 			continue // Skip this feed instead of failing entirely
 		}
 		in, err := rss.ToInternal(data)
 		if err != nil {
 			log.Printf("Failed to parse feed for %s: %v", k, err)
+			// TODO failed status
 			continue // Skip this feed instead of failing entirely
 		}
 		in.Name = k
 		rep = append(rep, in)
 	}
-	return rep, nil
+	return rep
+}
+
+func defaultConfig() string {
+	config, err := os.UserConfigDir()
+	if err != nil {
+		config = "."
+	}
+	return filepath.Join(config, "refuss")
+}
+
+func defaultCacheDir() string {
+	cache, err := os.UserCacheDir()
+	if err != nil {
+		cache = "."
+	}
+	return filepath.Join(cache, "refuss")
 }
