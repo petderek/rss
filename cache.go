@@ -9,6 +9,10 @@ var (
 	ErrNotFound = errors.New("not found")
 )
 
+const (
+	rssxml = "rss.xml"
+)
+
 type Cache struct {
 	dir string
 }
@@ -17,23 +21,27 @@ func NewCache(dir string) *Cache {
 	return &Cache{dir: dir}
 }
 
-func (c *Cache) Get(subscription string) (*Subscription, error) {
-	target := filepath.Join(c.dir, subscription)
+func (c *Cache) GetSubscription(name string) (*FileEntry, error) {
+	target := filepath.Join(c.dir, name, rssxml)
 	if !exists(target) {
 		return nil, ErrNotFound
 	}
-	return &Subscription{dir: target}, nil
+	return &FileEntry{filename: target}, nil
 }
 
-type Subscription struct {
-	name string
-	dir  string
+func (c *Cache) PutSubscription(name string, data []byte) error {
+	target := filepath.Join(c.dir, name)
+	if err := mkdir(target, 0755); err != nil {
+		return err
+	}
+	target = filepath.Join(target, rssxml)
+	return writeFile(target, data, 0644)
 }
 
-func (s *Subscription) GetRssData() ([]byte, error) {
-	return readFile(filepath.Join(s.dir, s.name, "rss.xml"))
+type FileEntry struct {
+	filename string
 }
 
-func (s *Subscription) GetGuidContent(guid string) ([]byte, error) {
-	return nil, nil
+func (s *FileEntry) Data() ([]byte, error) {
+	return readFile(s.filename)
 }
