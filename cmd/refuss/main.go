@@ -19,7 +19,6 @@ const (
 
 func main() {
 	cfg := loadcfg(replaceHome(HACK_CONFIG))
-	log.Println(cfg.String())
 	opts := &fs.Options{}
 	raw := fs.NewNodeFS(&rss.FSRSS{
 		InternalRep: createRep(cfg),
@@ -69,12 +68,12 @@ func loadcfg(path string) rss.SubscriptionConfig {
 func createRep(config rss.SubscriptionConfig) []*rss.Node {
 	rep := []*rss.Node{}
 	cache := rss.NewCache(replaceHome(HACK_CACHE))
+	content := rss.Content{
+		config,
+		*cache,
+	}
 	for k, _ := range config {
-		sub, err := cache.Get(k)
-		if err != nil {
-			log.Fatal(err)
-		}
-		data, err := sub.GetRssData()
+		data, err := content.GetFeed(k)
 		if err != nil {
 			log.Fatal(err)
 		}

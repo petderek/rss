@@ -22,7 +22,7 @@ const sample = `<rss>
 <title>item1</title>
 <description>item1desc</description>
 <link>http://example.com/item1link</link>
-<content>item1content</content>
+<content:encoded>item1content</content:encoded>
 <pubDate>Fri, 19 Sep 2025 12:05:57</pubDate>
 <guid>item1guid</guid>
 </item>
@@ -30,7 +30,7 @@ const sample = `<rss>
 <title>item2</title>
 <description>item2desc</description>
 <link>http://example.com/item2link</link>
-<content>item2content</content>
+<content:encoded>item2content</content:encoded>
 <pubDate>Fri, 19 Sep 2025 12:05:57</pubDate>
 <guid>item2guid</guid>
 </item>
@@ -71,7 +71,7 @@ var (
 	}
 )
 
-func TestThing(t *testing.T) {
+func TestParseXML(t *testing.T) {
 	c, err := parseXML([]byte(sample))
 	require.NoError(t, err)
 	assert.Equal(t, expected, c)
