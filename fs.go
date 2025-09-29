@@ -8,15 +8,17 @@ import (
 
 type FSRSS struct {
 	Name        string
-	InternalRep *Node
+	InternalRep []*Node
 	fs.Inode
 }
 
 func (f *FSRSS) OnAdd(ctx context.Context) {
-	node := f.NewPersistentInode(ctx, &fsdir{
-		InternalRep: f.InternalRep,
-	}, fs.StableAttr{Mode: syscall.S_IFDIR})
-	f.AddChild(f.Name, node, true)
+	for _, rep := range f.InternalRep {
+		node := f.NewPersistentInode(ctx, &fsdir{
+			InternalRep: rep,
+		}, fs.StableAttr{Mode: syscall.S_IFDIR})
+		f.AddChild(rep.Name, node, true)
+	}
 }
 
 type fsdir struct {

@@ -8,38 +8,38 @@ import (
 	"testing"
 )
 
-const sample = `<Rss>
-<Channel>
+const sample = `<rss>
+<channel>
 <title>title</title>
 <description>desc</description>
 <link>http://example.com/title</link>
-<Image>
+<image>
 <link>http://example.com/imagelink</link>
 <url>http://example.com/imageurl</url>
 <title>imagetitle</title>
-</Image>
-<Item>
+</image>
+<item>
 <title>item1</title>
 <description>item1desc</description>
 <link>http://example.com/item1link</link>
 <content>item1content</content>
 <pubDate>Fri, 19 Sep 2025 12:05:57</pubDate>
 <guid>item1guid</guid>
-</Item>
-<Item>
+</item>
+<item>
 <title>item2</title>
 <description>item2desc</description>
 <link>http://example.com/item2link</link>
 <content>item2content</content>
 <pubDate>Fri, 19 Sep 2025 12:05:57</pubDate>
 <guid>item2guid</guid>
-</Item>
-</Channel>
-</Rss>`
+</item>
+</channel>
+</rss>`
 
 var (
 	expected = Rss{
-		XMLName: xml.Name{Local: "Rss"},
+		XMLName: xml.Name{Local: "rss"},
 		Channel: Channel{
 			Title:       "title",
 			Description: "desc",

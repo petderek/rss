@@ -5,5 +5,5 @@ func ToInternal(data []byte) (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	return fromRss(r), nil
+	return FromRss(r), nil
 }

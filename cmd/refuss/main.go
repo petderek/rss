@@ -12,31 +12,17 @@ import (
 )
 
 const (
-	HACK_URL   = "https://feeds.npr.org/1019/rss.xml"
-	HACK_NAME  = "npr"
-	HACK_DIR   = "~/refuss"
-	HACK_CACHE = "~/refuss-cache"
+	HACK_DIR    = "~/refuss"
+	HACK_CACHE  = "~/refuss-cache"
+	HACK_CONFIG = "~/refuss-config/subscriptions.cfg"
 )
 
 func main() {
-	cache := rss.NewCache(replaceHome(HACK_CACHE))
-	sub, err := cache.Get(HACK_NAME)
-	if err != nil {
-		log.Fatal(err)
-	}
-	data, err := sub.GetRssData()
-	if err != nil {
-		log.Fatal(err)
-	}
-	rep, err := rss.ToInternal(data)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	cfg := loadcfg(replaceHome(HACK_CONFIG))
+	log.Println(cfg.String())
 	opts := &fs.Options{}
 	raw := fs.NewNodeFS(&rss.FSRSS{
-		Name:        HACK_NAME,
-		InternalRep: rep,
+		InternalRep: createRep(cfg),
 	}, opts)
 	server, err := fuse.NewServer(raw, replaceHome(HACK_DIR), &opts.MountOptions)
 	if err != nil {
@@ -70,4 +56,34 @@ func replaceHome(path string) string {
 		log.Fatal("unable to get homedir: ", err)
 	}
 	return strings.Replace(path, "~", home, 1)
+}
+
+func loadcfg(path string) rss.SubscriptionConfig {
+	simple, err := rss.FromFile(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rss.ToSubscription(simple)
+}
+
+func createRep(config rss.SubscriptionConfig) []*rss.Node {
+	rep := []*rss.Node{}
+	cache := rss.NewCache(replaceHome(HACK_CACHE))
+	for k, _ := range config {
+		sub, err := cache.Get(k)
+		if err != nil {
+			log.Fatal(err)
+		}
+		data, err := sub.GetRssData()
+		if err != nil {
+			log.Fatal(err)
+		}
+		in, err := rss.ToInternal(data)
+		if err != nil {
+			log.Fatal(err)
+		}
+		in.Name = k
+		rep = append(rep, in)
+	}
+	return rep
 }

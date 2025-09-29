@@ -23,13 +23,13 @@ type Channel struct {
 	Title       string `xml:"title"`
 	Description string `xml:"description"`
 	Link        string `xml:"link"`
-	Image       Image  `xml:"Image"`
-	Items       []Item `xml:"Item"`
+	Image       Image  `xml:"image"`
+	Items       []Item `xml:"item"`
 }
 
 type Rss struct {
-	XMLName xml.Name `xml:"Rss"`
-	Channel Channel  `xml:"Channel"`
+	XMLName xml.Name `xml:"rss"`
+	Channel Channel  `xml:"channel"`
 }
 
 func parseXML(data []byte) (Rss, error) {

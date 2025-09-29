@@ -11,7 +11,6 @@ var (
 
 type Cache struct {
 	dir string
-	deps
 }
 
 func NewCache(dir string) *Cache {
@@ -20,7 +19,7 @@ func NewCache(dir string) *Cache {
 
 func (c *Cache) Get(subscription string) (*Subscription, error) {
 	target := filepath.Join(c.dir, subscription)
-	if !c.Exists(target) {
+	if !exists(target) {
 		return nil, ErrNotFound
 	}
 	return &Subscription{dir: target}, nil
@@ -29,11 +28,10 @@ func (c *Cache) Get(subscription string) (*Subscription, error) {
 type Subscription struct {
 	name string
 	dir  string
-	deps
 }
 
 func (s *Subscription) GetRssData() ([]byte, error) {
-	return s.ReadFile(filepath.Join(s.dir, s.name, "rss.xml"))
+	return readFile(filepath.Join(s.dir, s.name, "rss.xml"))
 }
 
 func (s *Subscription) GetGuidContent(guid string) ([]byte, error) {
