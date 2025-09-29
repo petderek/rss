@@ -15,7 +15,7 @@ import (
 var (
 	configDir = flag.String("config", defaultConfig(), "directory with config files")
 	cacheDir  = flag.String("cache", defaultCacheDir(), "directory with cache files")
-	fuseDir   = flag.String("mount", "", "target to mount")
+	fuseDir   = flag.String("mount", "", "target to mount (required)")
 )
 
 func main() {
@@ -23,6 +23,13 @@ func main() {
 	if fuseDir == nil || *fuseDir == "" {
 		log.Println("-mount must be set")
 		os.Exit(1)
+	}
+	if !rss.Exists(*fuseDir) {
+		err := os.MkdirAll(*fuseDir, 0755)
+		if err != nil {
+			log.Println("directory doesn't exist and can't be created: ", err)
+			os.Exit(1)
+		}
 	}
 	cfg, err := loadSubscriptions(*configDir)
 	if err != nil {
