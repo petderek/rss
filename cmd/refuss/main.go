@@ -37,9 +37,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	cache := rss.NewCache(*cacheDir)
+	content := &rss.Content{
+		Config: cfg,
+		Cache:  *cache,
+	}
+	
+	// Validate feeds at startup to provide early feedback
+	validateFeeds(content)
+	
 	opts := &fs.Options{}
 	raw := fs.NewNodeFS(&rss.FSRSS{
-		InternalRep: createRep(cfg),
+		Content: content,
 	}, opts)
 	server, err := fuse.NewServer(raw, *mount, &opts.MountOptions)
 	if err != nil {
@@ -78,30 +87,15 @@ func loadSubscriptions(path string) (rss.SubscriptionConfig, error) {
 	return rss.ToSubscription(simple), nil
 }
 
-func createRep(config rss.SubscriptionConfig) []*rss.Node {
-	rep := []*rss.Node{}
-	cache := rss.NewCache(*cacheDir)
-	content := rss.Content{
-		config,
-		*cache,
-	}
-	for k, _ := range config {
-		data, err := content.GetFeed(k)
+// validateFeeds checks that all configured feeds can be loaded
+// This provides early feedback about feed problems at startup
+func validateFeeds(content *rss.Content) {
+	for _, feedName := range content.ListFeeds() {
+		_, err := content.GetNode(feedName)
 		if err != nil {
-			log.Printf("Failed to get feed for %s: %v", k, err)
-			// TODO failed status
-			continue // Skip this feed instead of failing entirely
+			log.Printf("Warning: Failed to load feed %s: %v", feedName, err)
 		}
-		in, err := rss.ToInternal(data)
-		if err != nil {
-			log.Printf("Failed to parse feed for %s: %v", k, err)
-			// TODO failed status
-			continue // Skip this feed instead of failing entirely
-		}
-		in.Name = k
-		rep = append(rep, in)
 	}
-	return rep
 }
 
 func defaultConfig() string {

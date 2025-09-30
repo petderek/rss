@@ -73,6 +73,8 @@ func FromRss(r Rss) *Node {
 
 func sanitizeFilepath(in string) string {
 	removedSpaces := strings.Replace(in, " ", "_", -1)
-	removedQuestions := strings.Replace(removedSpaces, "?", "", -1)
+	removedQuotes := strings.Replace(removedSpaces, "'", "", -1)
+	removedDoubleQuotes := strings.Replace(removedQuotes, "\"", "", -1)
+	removedQuestions := strings.Replace(removedDoubleQuotes, "?", "", -1)
 	return removedQuestions
 }
