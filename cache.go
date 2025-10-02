@@ -10,7 +10,7 @@ var (
 )
 
 const (
-	rssxml = "rss.xml"
+	feedxml = "feed.xml"
 )
 
 type Cache struct {
@@ -22,7 +22,7 @@ func NewCache(dir string) *Cache {
 }
 
 func (c *Cache) GetSubscription(name string) (*FileEntry, error) {
-	target := filepath.Join(c.dir, name, rssxml)
+	target := filepath.Join(c.dir, name, feedxml)
 	if !exists(target) {
 		return nil, ErrNotFound
 	}
@@ -34,7 +34,7 @@ func (c *Cache) PutSubscription(name string, data []byte) error {
 	if err := mkdir(target, 0755); err != nil {
 		return err
 	}
-	target = filepath.Join(target, rssxml)
+	target = filepath.Join(target, feedxml)
 	return writeFile(target, data, 0644)
 }
 

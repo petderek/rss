@@ -1,9 +1,17 @@
 package rss
 
+import "errors"
+
 func ToInternal(data []byte) (*Node, error) {
-	r, err := parseXML(data)
-	if err != nil {
-		return nil, err
+	// Try RSS first
+	if rss, err := parseXML(data); err == nil {
+		return FromRss(rss), nil
 	}
-	return FromRss(r), nil
+	
+	// Try Atom
+	if atom, err := parseAtomXML(data); err == nil {
+		return FromAtom(atom), nil
+	}
+	
+	return nil, errors.New("unable to parse as RSS or Atom feed")
 }

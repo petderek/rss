@@ -71,6 +71,84 @@ func FromRss(r Rss) *Node {
 	return root
 }
 
+func FromAtom(a AtomFeed) *Node {
+	root := &Node{
+		Dir: true,
+	}
+	root.add(&Node{
+		Name:    "title",
+		Content: a.Title,
+	})
+	root.add(&Node{
+		Name:    "description",
+		Content: a.Subtitle,
+	})
+	
+	var link string
+	for _, l := range a.Link {
+		if l.Rel == "alternate" || l.Rel == "" {
+			link = l.Href
+			break
+		}
+	}
+	root.add(&Node{
+		Name:    "link",
+		Content: link,
+	})
+	
+	articles := &Node{
+		Name: "articles",
+		Dir:  true,
+	}
+	for _, entry := range a.Entries {
+		n := &Node{
+			Name: sanitizeFilepath(entry.Title),
+			Dir:  true,
+		}
+		n.add(&Node{
+			Name:    "title",
+			Content: entry.Title,
+		})
+		n.add(&Node{
+			Name:    "description",
+			Content: entry.Summary,
+		})
+		
+		var entryLink string
+		for _, l := range entry.Link {
+			if l.Rel == "alternate" || l.Rel == "" {
+				entryLink = l.Href
+				break
+			}
+		}
+		n.add(&Node{
+			Name:    "link",
+			Content: entryLink,
+		})
+		n.add(&Node{
+			Name:    "guid",
+			Content: entry.ID,
+		})
+		n.add(&Node{
+			Name:    "date",
+			Content: entry.Published,
+		})
+		
+		content := entry.Content.Text
+		if content == "" {
+			content = entry.Summary
+		}
+		n.add(&Node{
+			Name:    "content",
+			Content: content,
+		})
+		articles.add(n)
+	}
+	root.add(articles)
+
+	return root
+}
+
 func sanitizeFilepath(in string) string {
 	removedSpaces := strings.Replace(in, " ", "_", -1)
 	removedQuotes := strings.Replace(removedSpaces, "'", "", -1)
